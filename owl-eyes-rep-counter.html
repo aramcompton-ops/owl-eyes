@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Owl Eyes Rep Counter</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --surface: #111116;
+    --card: #16161d;
+    --amber: #f5a623;
+    --amber-dim: #8a5c10;
+    --amber-glow: rgba(245,166,35,0.15);
+    --green: #39d353;
+    --red: #ff4757;
+    --text: #e8e0d0;
+    --muted: #5a5560;
+    --border: rgba(245,166,35,0.2);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 18px 20px 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: relative;
+  }
+  .owl-logo {
+    width: 44px; height: 44px;
+    position: relative; flex-shrink: 0;
+  }
+  .owl-logo svg { width: 100%; height: 100%; }
+  .header-text h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--amber);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .header-text p {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .blink {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-left: auto;
+    animation: blink 2s infinite;
+    box-shadow: 0 0 6px var(--green);
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* TABS / SCREENS */
+  .screen { display: none; flex: 1; flex-direction: column; padding: 16px; gap: 14px; }
+  .screen.active { display: flex; }
+
+  /* EXERCISE PICKER */
+  .section-label {
+    font-size: 0.62rem;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .exercise-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .ex-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+  }
+  .ex-btn .ex-icon { font-size: 1.8rem; margin-bottom: 6px; display: block; }
+  .ex-btn.selected, .ex-btn:active {
+    border-color: var(--amber);
+    background: var(--amber-glow);
+    color: var(--amber);
+    box-shadow: 0 0 12px var(--amber-glow);
+  }
+
+  /* SETTINGS CARD */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .toggle-label { font-size: 0.72rem; color: var(--text); }
+  .toggle {
+    width: 42px; height: 24px;
+    background: var(--muted);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+    border: none; flex-shrink: 0;
+  }
+  .toggle.on { background: var(--amber); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: white;
+    top: 3px; left: 3px;
+    transition: transform 0.3s;
+  }
+  .toggle.on::after { transform: translateX(18px); }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .input-row label { font-size: 0.7rem; color: var(--muted); flex: 1; }
+  .num-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--amber);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    width: 70px;
+    text-align: center;
+    padding: 6px;
+    letter-spacing: 2px;
+  }
+  .num-input:focus { outline: none; border-color: var(--amber); }
+
+  /* START BUTTON */
+  .start-btn {
+    background: var(--amber);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(245,166,35,0.3);
+  }
+  .start-btn:active { transform: scale(0.97); }
+  .start-btn:disabled { background: var(--muted); box-shadow: none; color: #333; }
+
+  /* COUNTER SCREEN */
+  .counter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .exercise-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: var(--amber);
+    letter-spacing: 3px;
+  }
+  .stop-btn {
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+
+  /* BIG REP COUNTER */
+  .rep-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+    position: relative;
+  }
+  .rep-ring {
+    width: 200px; height: 200px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rep-ring svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+  .progress-track { fill: none; stroke: var(--card); stroke-width: 8; }
+  .progress-fill {
+    fill: none;
+    stroke: var(--amber);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 565;
+    stroke-dashoffset: 565;
+    transition: stroke-dashoffset 0.4s ease, stroke 0.3s;
+    filter: drop-shadow(0 0 6px var(--amber));
+  }
+  .rep-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5rem;
+    color: var(--text);
+    line-height: 1;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.1s;
+  }
+  .rep-number.pulse { animation: repPulse 0.3s ease; }
+  @keyframes repPulse {
+    0%{ transform: scale(1); }
+    50%{ transform: scale(1.15); color: var(--amber); }
+    100%{ transform: scale(1); }
+  }
+  .rep-label {
+    font-size: 0.6rem;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* STATUS BAR */
+  .status-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+  }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: var(--amber);
+    letter-spacing: 2px;
+  }
+  .stat-lbl { font-size: 0.55rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* POSE CAMERA */
+  .camera-area {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    flex: 1;
+    min-height: 200px;
+  }
+  #videoEl {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transform: scaleX(-1);
+  }
+  #canvasEl {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transform: scaleX(-1);
+  }
+  .camera-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(10,10,12,0.85);
+  }
+  .camera-overlay p {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: 1px;
+    padding: 0 20px;
+  }
+  .cam-btn {
+    background: var(--amber);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+  }
+
+  /* FLASH OVERLAY */
+  .flash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0;
+  }
+  .flash.amber { background: rgba(245,166,35,0.25); animation: flashAnim 0.4s ease; }
+  .flash.green { background: rgba(57,211,83,0.3); animation: flashAnim 0.5s ease; }
+  @keyframes flashAnim { 0%{opacity:1} 100%{opacity:0} }
+
+  /* DONE SCREEN */
+  #doneScreen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,12,0.97);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    text-align: center;
+    padding: 30px;
+  }
+  #doneScreen.show { display: flex; }
+  .done-icon { font-size: 5rem; }
+  .done-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    color: var(--amber);
+    letter-spacing: 4px;
+  }
+  .done-sub { font-size: 0.8rem; color: var(--muted); letter-spacing: 2px; }
+  .done-stats {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 30px;
+    display: flex;
+    gap: 30px;
+  }
+  .again-btn {
+    background: var(--amber);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 40px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 3px;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  /* NAV BAR */
+  .nav { display: flex; border-top: 1px solid var(--border); background: var(--surface); }
+  .nav-btn {
+    flex: 1;
+    padding: 12px 0;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+  }
+  .nav-btn .nav-icon { font-size: 1.2rem; }
+  .nav-btn.active { color: var(--amber); }
+
+  /* HISTORY SCREEN */
+  .history-list { display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
+  .hist-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .hist-left .hist-ex {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--amber);
+    letter-spacing: 2px;
+  }
+  .hist-left .hist-date { font-size: 0.6rem; color: var(--muted); margin-top: 2px; }
+  .hist-reps {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--text);
+    letter-spacing: 2px;
+  }
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-align: center;
+  }
+  .empty-state span { font-size: 3rem; }
+
+  .announcement {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--amber);
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 3px;
+    padding: 10px 24px;
+    border-radius: 30px;
+    z-index: 500;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+  .announcement.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- FLASH -->
+<div class="flash" id="flash"></div>
+<!-- ANNOUNCEMENT -->
+<div class="announcement" id="announcement"></div>
+
+<!-- DONE SCREEN -->
+<div id="doneScreen">
+  <div class="done-icon">🦉</div>
+  <div class="done-title">TARGET REACHED!</div>
+  <div class="done-sub" id="doneSubtitle"></div>
+  <div class="done-stats">
+    <div class="stat">
+      <span class="stat-val" id="doneReps">0</span>
+      <span class="stat-lbl">Reps</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val" id="doneTime">0:00</span>
+      <span class="stat-lbl">Time</span>
+    </div>
+  </div>
+  <button class="again-btn" onclick="goAgain()">GO AGAIN</button>
+  <button class="stop-btn" style="width:100%;padding:12px" onclick="finishAndHome()">BACK TO HOME</button>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="owl-logo">
+    <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="22" cy="22" r="21" fill="#16161d" stroke="#f5a623" stroke-width="1.5"/>
+      <!-- Body -->
+      <ellipse cx="22" cy="26" rx="10" ry="12" fill="#f5a623" opacity="0.15"/>
+      <!-- Left eye -->
+      <circle cx="15.5" cy="19" r="6" fill="#0a0a0c" stroke="#f5a623" stroke-width="1.5"/>
+      <circle cx="15.5" cy="19" r="3.5" fill="#f5a623"/>
+      <circle cx="16.5" cy="18" r="1.2" fill="#0a0a0c"/>
+      <!-- Right eye -->
+      <circle cx="28.5" cy="19" r="6" fill="#0a0a0c" stroke="#f5a623" stroke-width="1.5"/>
+      <circle cx="28.5" cy="19" r="3.5" fill="#f5a623"/>
+      <circle cx="29.5" cy="18" r="1.2" fill="#0a0a0c"/>
+      <!-- Beak -->
+      <polygon points="22,22 20,25 24,25" fill="#f5a623" opacity="0.7"/>
+      <!-- Ears/tufts -->
+      <polygon points="14,10 11,4 17,8" fill="#f5a623" opacity="0.5"/>
+      <polygon points="30,10 33,4 27,8" fill="#f5a623" opacity="0.5"/>
+    </svg>
+  </div>
+  <div class="header-text">
+    <h1>Owl Eyes</h1>
+    <p>Rep Counter</p>
+  </div>
+  <div class="blink"></div>
+</div>
+
+<!-- SCREENS -->
+
+<!-- SETUP SCREEN -->
+<div class="screen active" id="setupScreen">
+  <div>
+    <div class="section-label">Choose Exercise</div>
+    <div class="exercise-grid">
+      <button class="ex-btn" onclick="selectExercise(this,'Crunches','🏋️')">
+        <span class="ex-icon">🏋️</span>Crunches
+      </button>
+      <button class="ex-btn" onclick="selectExercise(this,'Squats','🦵')">
+        <span class="ex-icon">🦵</span>Squats
+      </button>
+      <button class="ex-btn" onclick="selectExercise(this,'Sit-Ups','💪')">
+        <span class="ex-icon">💪</span>Sit-Ups
+      </button>
+      <button class="ex-btn" onclick="selectExercise(this,'Press-Ups','🔥')">
+        <span class="ex-icon">🔥</span>Press-Ups
+      </button>
+      <button class="ex-btn" onclick="selectExercise(this,'Bicep Curls','💥')">
+        <span class="ex-icon">💥</span>Bicep Curls
+      </button>
+      <button class="ex-btn" onclick="selectExercise(this,'Other','⚡')">
+        <span class="ex-icon">⚡</span>Other
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Counting Mode</div>
+    <div class="toggle-row">
+      <span class="toggle-label">Set a target</span>
+      <button class="toggle" id="targetToggle" onclick="toggleTarget()"></button>
+    </div>
+    <div id="targetOptions" style="display:none">
+      <div class="input-row">
+        <label>Target reps</label>
+        <input class="num-input" type="number" id="targetInput" value="20" min="1" max="999">
+      </div>
+      <div style="height:12px"></div>
+      <div class="toggle-row">
+        <span class="toggle-label">Announce halfway</span>
+        <button class="toggle on" id="halfwayToggle" onclick="this.classList.toggle('on')"></button>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Announce every 10 reps</span>
+        <button class="toggle on" id="every10Toggle" onclick="this.classList.toggle('on')"></button>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Count down last 5</span>
+        <button class="toggle on" id="countdown5Toggle" onclick="this.classList.toggle('on')"></button>
+      </div>
+    </div>
+    <div id="noTargetOptions">
+      <div class="toggle-row" style="margin-bottom:0">
+        <span class="toggle-label">Shout every 10 reps</span>
+        <button class="toggle on" id="shout10Toggle" onclick="this.classList.toggle('on')"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Counting Method</div>
+    <div class="toggle-row" style="margin-bottom:0">
+      <span class="toggle-label">Use camera (pose detection)</span>
+      <button class="toggle" id="cameraToggle" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <p style="font-size:0.6rem;color:var(--muted);margin-top:8px;line-height:1.6">Camera mode uses your front camera to detect movement. Or tap the big counter manually.</p>
+  </div>
+
+  <button class="start-btn" id="startBtn" onclick="startSession()" disabled>START SESSION</button>
+</div>
+
+<!-- COUNTER SCREEN -->
+<div class="screen" id="counterScreen">
+  <div class="counter-header">
+    <div class="exercise-name" id="counterExName">SQUATS</div>
+    <button class="stop-btn" onclick="stopSession()">■ STOP</button>
+  </div>
+
+  <div class="status-bar">
+    <div class="stat">
+      <span class="stat-val" id="statReps">0</span>
+      <span class="stat-lbl">Reps</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val" id="statTarget">—</span>
+      <span class="stat-lbl">Target</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val" id="statTime">0:00</span>
+      <span class="stat-lbl">Time</span>
+    </div>
+  </div>
+
+  <div class="rep-display" onclick="manualCount()">
+    <div class="rep-ring">
+      <svg viewBox="0 0 200 200">
+        <circle class="progress-track" cx="100" cy="100" r="90"/>
+        <circle class="progress-fill" id="progressCircle" cx="100" cy="100" r="90"/>
+      </svg>
+      <div>
+        <div class="rep-number" id="repNumber">0</div>
+        <div class="rep-label">TAP TO COUNT</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="camera-area" id="cameraArea" style="display:none">
+    <video id="videoEl" autoplay playsinline muted></video>
+    <canvas id="canvasEl"></canvas>
+    <div class="camera-overlay" id="cameraOverlay">
+      <span style="font-size:2rem">📷</span>
+      <p>Camera will watch your movement and count reps automatically</p>
+      <button class="cam-btn" onclick="startCamera()">ENABLE CAMERA</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px">
+    <button class="stop-btn" style="flex:1;padding:14px;font-size:0.8rem" onclick="undoRep()">↩ UNDO</button>
+    <button style="flex:2;background:var(--amber);color:#000;border:none;border-radius:10px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;cursor:pointer" onclick="manualCount()">+ REP</button>
+  </div>
+</div>
+
+<!-- HISTORY SCREEN -->
+<div class="screen" id="historyScreen">
+  <div class="section-label">Session History</div>
+  <div class="history-list" id="historyList"></div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn active" id="nav-setup" onclick="showTab('setup')">
+    <span class="nav-icon">🦉</span>Setup
+  </button>
+  <button class="nav-btn" id="nav-counter" onclick="showTab('counter')">
+    <span class="nav-icon">🔢</span>Counter
+  </button>
+  <button class="nav-btn" id="nav-history" onclick="showTab('history')">
+    <span class="nav-icon">📋</span>History
+  </button>
+</div>
+
+<script>
+// ── STATE ──
+let exercise = null;
+let exerciseIcon = null;
+let reps = 0;
+let target = 0;
+let useTarget = false;
+let sessionActive = false;
+let timerInterval = null;
+let secondsElapsed = 0;
+let history = JSON.parse(localStorage.getItem('owlHistory') || '[]');
+let lastAnnouncedTen = 0;
+let halfwayDone = false;
+let countdownStarted = false;
+let synth = window.speechSynthesis;
+
+// ── SPEECH ──
+function speak(text, rate = 1.05) {
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = rate;
+  u.pitch = 1;
+  u.volume = 1;
+  synth.speak(u);
+}
+
+// ── UI HELPERS ──
+function showAnnouncement(text, duration = 2000) {
+  const el = document.getElementById('announcement');
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), duration);
+}
+
+function flash(type = 'amber') {
+  const el = document.getElementById('flash');
+  el.className = 'flash ' + type;
+  setTimeout(() => el.className = 'flash', 600);
+}
+
+function selectExercise(btn, name, icon) {
+  document.querySelectorAll('.ex-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  exercise = name;
+  exerciseIcon = icon;
+  document.getElementById('startBtn').disabled = false;
+}
+
+function toggleTarget() {
+  const t = document.getElementById('targetToggle');
+  t.classList.toggle('on');
+  useTarget = t.classList.contains('on');
+  document.getElementById('targetOptions').style.display = useTarget ? 'block' : 'none';
+  document.getElementById('noTargetOptions').style.display = useTarget ? 'none' : 'block';
+}
+
+function showTab(tab) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tab + 'Screen').classList.add('active');
+  document.getElementById('nav-' + tab).classList.add('active');
+  if (tab === 'history') renderHistory();
+}
+
+// ── SESSION ──
+function startSession() {
+  if (!exercise) return;
+  reps = 0;
+  lastAnnouncedTen = 0;
+  halfwayDone = false;
+  countdownStarted = false;
+  secondsElapsed = 0;
+  sessionActive = true;
+  useTarget = document.getElementById('targetToggle').classList.contains('on');
+  target = useTarget ? parseInt(document.getElementById('targetInput').value) || 20 : 0;
+
+  document.getElementById('counterExName').textContent = exerciseIcon + ' ' + exercise.toUpperCase();
+  document.getElementById('statTarget').textContent = target || '∞';
+  document.getElementById('repNumber').textContent = '0';
+  document.getElementById('statReps').textContent = '0';
+  updateProgress();
+
+  const useCam = document.getElementById('cameraToggle').classList.contains('on');
+  document.getElementById('cameraArea').style.display = useCam ? 'block' : 'none';
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    secondsElapsed++;
+    const m = Math.floor(secondsElapsed / 60);
+    const s = secondsElapsed % 60;
+    document.getElementById('statTime').textContent = m + ':' + String(s).padStart(2, '0');
+  }, 1000);
+
+  showTab('counter');
+  speak("Let's go! " + exercise + " starting now.");
+}
+
+function stopSession() {
+  if (!sessionActive) return;
+  saveToHistory();
+  endSession();
+  showTab('setup');
+}
+
+function endSession() {
+  sessionActive = false;
+  clearInterval(timerInterval);
+  stopCamera();
+}
+
+function manualCount() {
+  if (!sessionActive) return;
+  addRep();
+}
+
+function addRep() {
+  reps++;
+  document.getElementById('repNumber').textContent = reps;
+  document.getElementById('statReps').textContent = reps;
+  const el = document.getElementById('repNumber');
+  el.classList.remove('pulse');
+  void el.offsetWidth;
+  el.classList.add('pulse');
+  flash('amber');
+  updateProgress();
+  checkAnnouncements();
+}
+
+function undoRep() {
+  if (reps <= 0 || !sessionActive) return;
+  reps--;
+  document.getElementById('repNumber').textContent = reps;
+  document.getElementById('statReps').textContent = reps;
+  updateProgress();
+}
+
+function updateProgress() {
+  const circle = document.getElementById('progressCircle');
+  const circumference = 565;
+  if (target > 0) {
+    const progress = Math.min(reps / target, 1);
+    circle.style.strokeDashoffset = circumference - (circumference * progress);
+    if (progress >= 1) circle.style.stroke = 'var(--green)';
+    else circle.style.stroke = 'var(--amber)';
+  } else {
+    // Spin around every 10
+    const progress = (reps % 10) / 10;
+    circle.style.strokeDashoffset = circumference - (circumference * progress);
+  }
+}
+
+function checkAnnouncements() {
+  const useTarget = document.getElementById('targetToggle').classList.contains('on');
+
+  if (useTarget && target > 0) {
+    const remaining = target - reps;
+
+    // Halfway
+    const halfwayOn = document.getElementById('halfwayToggle').classList.contains('on');
+    if (halfwayOn && !halfwayDone && reps === Math.floor(target / 2)) {
+      halfwayDone = true;
+      flash('amber');
+      showAnnouncement('HALFWAY THERE!', 2500);
+      speak('Halfway there! ' + remaining + ' to go. Keep it up!');
+      return;
+    }
+
+    // Countdown last 5
+    const countdown5On = document.getElementById('countdown5Toggle').classList.contains('on');
+    if (countdown5On && remaining > 0 && remaining <= 5) {
+      flash('amber');
+      showAnnouncement(remaining + ' TO GO!', 1500);
+      speak(remaining + '!', 0.9);
+      return;
+    }
+
+    // Every 10
+    const every10On = document.getElementById('every10Toggle').classList.contains('on');
+    if (every10On && reps > 0 && reps % 10 === 0 && reps !== lastAnnouncedTen && remaining > 0) {
+      lastAnnouncedTen = reps;
+      flash('amber');
+      showAnnouncement(reps + ' REPS!', 2000);
+      speak(reps + ' reps! ' + remaining + ' to go!');
+      return;
+    }
+
+    // Done!
+    if (remaining <= 0) {
+      sessionComplete();
+    }
+  } else {
+    // No target — shout every 10
+    const shout10On = document.getElementById('shout10Toggle').classList.contains('on');
+    if (shout10On && reps > 0 && reps % 10 === 0 && reps !== lastAnnouncedTen) {
+      lastAnnouncedTen = reps;
+      flash('amber');
+      showAnnouncement(reps + ' REPS!', 2000);
+      speak(reps + ' reps! Keep going!');
+    }
+  }
+}
+
+function sessionComplete() {
+  flash('green');
+  saveToHistory();
+  endSession();
+
+  const m = Math.floor(secondsElapsed / 60);
+  const s = secondsElapsed % 60;
+  document.getElementById('doneReps').textContent = reps;
+  document.getElementById('doneTime').textContent = m + ':' + String(s).padStart(2, '0');
+  document.getElementById('doneSubtitle').textContent = exercise.toUpperCase() + ' · ' + new Date().toLocaleDateString();
+  document.getElementById('doneScreen').classList.add('show');
+  speak('Amazing work! You hit your target of ' + target + ' reps! You are a champion!');
+}
+
+function goAgain() {
+  document.getElementById('doneScreen').classList.remove('show');
+  showTab('setup');
+}
+
+function finishAndHome() {
+  document.getElementById('doneScreen').classList.remove('show');
+  showTab('setup');
+}
+
+// ── HISTORY ──
+function saveToHistory() {
+  if (reps === 0) return;
+  const m = Math.floor(secondsElapsed / 60);
+  const s = secondsElapsed % 60;
+  history.unshift({
+    exercise,
+    icon: exerciseIcon,
+    reps,
+    target,
+    time: m + ':' + String(s).padStart(2,'0'),
+    date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})
+  });
+  if (history.length > 50) history = history.slice(0,50);
+  localStorage.setItem('owlHistory', JSON.stringify(history));
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (history.length === 0) {
+    list.innerHTML = '<div class="empty-state"><span>🦉</span><p>No sessions yet.<br>Complete your first workout!</p></div>';
+    return;
+  }
+  list.innerHTML = history.map(h => `
+    <div class="hist-item">
+      <div class="hist-left">
+        <div class="hist-ex">${h.icon} ${h.exercise}</div>
+        <div class="hist-date">${h.date} · ${h.time}</div>
+      </div>
+      <div class="hist-reps">${h.reps}<span style="font-size:0.7rem;color:var(--muted)">${h.target ? '/' + h.target : ''}</span></div>
+    </div>
+  `).join('');
+}
+
+// ── CAMERA / POSE ──
+let cameraStream = null;
+let poseNet = null;
+let poseLoop = null;
+let prevY = null;
+let repPhase = 'up'; // 'up' | 'down'
+
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    const video = document.getElementById('videoEl');
+    video.srcObject = cameraStream;
+    document.getElementById('cameraOverlay').style.display = 'none';
+
+    // Load TensorFlow pose detection
+    loadPoseDetection(video);
+  } catch(e) {
+    alert('Camera access denied. Use the manual tap method instead.');
+  }
+}
+
+async function loadPoseDetection(video) {
+  // Dynamically load tf and posenet
+  const tfScript = document.createElement('script');
+  tfScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.10.0/tf.min.js';
+  document.head.appendChild(tfScript);
+  tfScript.onload = async () => {
+    const pnScript = document.createElement('script');
+    pnScript.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js';
+    document.head.appendChild(pnScript);
+    pnScript.onload = async () => {
+      try {
+        const detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
+        runPoseLoop(detector, video);
+      } catch(e) {
+        console.warn('Pose detection failed:', e);
+      }
+    };
+  };
+}
+
+async function runPoseLoop(detector, video) {
+  const canvas = document.getElementById('canvasEl');
+  const ctx = canvas.getContext('2d');
+
+  async function detect() {
+    if (!sessionActive) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    try {
+      const poses = await detector.estimatePoses(video);
+      if (poses.length > 0) {
+        const pose = poses[0];
+        drawKeypoints(ctx, pose.keypoints);
+
+        // Track nose Y (works for crunches/situps) or hip Y (squats)
+        const nose = pose.keypoints.find(k => k.name === 'nose');
+        const leftHip = pose.keypoints.find(k => k.name === 'left_hip');
+        const rightHip = pose.keypoints.find(k => k.name === 'right_hip');
+
+        let trackPoint = null;
+        const ex = exercise?.toLowerCase();
+        if ((ex?.includes('squat')) && leftHip && rightHip && leftHip.score > 0.3 && rightHip.score > 0.3) {
+          trackPoint = (leftHip.y + rightHip.y) / 2;
+        } else if (nose && nose.score > 0.3) {
+          trackPoint = nose.y;
+        }
+
+        if (trackPoint !== null) {
+          const h = canvas.height;
+          const norm = trackPoint / h;
+
+          if (prevY === null) { prevY = norm; }
+          const diff = norm - prevY;
+
+          if (ex?.includes('squat') || ex?.includes('press') || ex?.includes('curl')) {
+            // Down = rep bottom
+            if (norm > 0.6 && repPhase === 'up') { repPhase = 'down'; }
+            if (norm < 0.45 && repPhase === 'down') { repPhase = 'up'; addRep(); }
+          } else {
+            // Crunch/situp: nose goes up (smaller Y) = crunch
+            if (norm < 0.35 && repPhase === 'down') { repPhase = 'up'; addRep(); }
+            if (norm > 0.5 && repPhase === 'up') { repPhase = 'down'; }
+          }
+          prevY = norm;
+        }
+      }
+    } catch(e) {}
+
+    poseLoop = requestAnimationFrame(detect);
+  }
+  detect();
+}
+
+function drawKeypoints(ctx, keypoints) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  keypoints.forEach(kp => {
+    if (kp.score > 0.3) {
+      ctx.beginPath();
+      ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(245,166,35,0.8)';
+      ctx.fill();
+    }
+  });
+}
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  if (poseLoop) {
+    cancelAnimationFrame(poseLoop);
+    poseLoop = null;
+  }
+  prevY = null;
+  repPhase = 'up';
+}
+
+// Init
+renderHistory();
+</script>
+</body>
+</html>
